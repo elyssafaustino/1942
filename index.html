@@ -1,0 +1,280 @@
+<html>
+<head>
+	<title>1942 Game</title>
+<style type="text/css">
+	body{
+		background-color: black;
+        margin: 0px;
+	}
+	#container{
+		background: url('1942 bg final.png');
+        margin: auto;
+		width: 1064px;
+		height: 697px;
+	}
+	#hero{
+		background: url('1942.gif');
+		background-position: -85px -180px;
+		width: 28px;
+		height: 28px;
+		position: absolute;
+	}
+	.enemy1{
+		background: url('1942.gif');
+		background-position: -30px -10px;
+		width: 28px;
+		height: 28px;
+		position: absolute;
+	}
+    .enemy2{
+        background: url('1942.gif');
+		background-position: -53px -62px;
+		width: 20px;
+		height: 20px;
+		position: absolute;
+    }
+	.bullet{
+		background: url('1942.gif');
+		background-position: -185px -400px;
+		width: 18px;
+		height: 18px;
+		position: absolute;
+	}
+    .explosion {
+        background: url('1942.gif');
+		background-position: -145px -32px;
+		width: 28px;
+		height: 28px;
+		position: absolute;
+    }
+	#score{
+		position: absolute;
+		border: 10px solid red;
+		top: 20px;
+		left: 850px;
+		background-color: white;
+		padding: 10px;
+		font-size: 30px;
+		font-family: Arial;	
+	}
+</style>
+</head>
+<body>
+	<div id='container'>
+		<div id='hero'></div>
+		<div id='enemies1'></div>
+        <div id='enemies2'></div>
+		<div id='bullets'></div>
+        <div id='explosion' type></div>	
+	</div>
+	<div id='score'>0</div>
+    <audio id="backgroundAudio" src="1942 bg sound.mp3" preload="auto"></audio>
+
+<script>
+    //DONE Easy Change the background of the game
+    //DONE Easy Get the hero to move up and down
+    //DONE Easy Get 7 enemies to show up instead of 4 at a time 
+    //DONE Intermediate Get another type of enemy airplane to show up
+    //DONE Advanced Collision Detection for the airplanes – when the hero collides with the enemy, have your score go down by 500.
+    //DONE Advanced Collision Detection for the bullet – Have the score go up by 10 when an enemy is struck down.
+    //DONE Advanced Get the enemy to explode when it is hit
+    //DONE Advanced When the bullet hits, make a sound.
+
+    var hero = {
+        x: 665,
+        y: 600
+    };
+
+    //array of javascript objects
+    //where it has coordinates of the enemies
+    var enemies1 = [{x: 420, y: 50}, {x: 550, y: 150}, {x: 910, y: 250}, {x: 775, y: 100}, {x: 650, y: 120}, {x: 825, y: 50}, {x: 600, y: 200}];
+    var enemies2 = [{x: 450, y: 30}, {x: 675, y: 50}, {x: 790, y: 70}];
+    
+    //bullets will be added to the array each time spacebar is clicked
+    var bullets = [];
+    var explosion = [];
+    var score = 0;
+    var explosionAudio = new Audio('1942 Explosion.mp3');
+
+    function playAudio() {
+        document.getElementById('backgroundAudio').play();
+    }
+
+    function displayHero() {
+        document.getElementById('hero').style['left'] = hero.x + "px";
+        document.getElementById('hero').style['top'] = hero.y + "px";
+    }
+
+    function displayEnemies1() {
+        var output = '';
+        for (var i=0; i<enemies1.length; i++) {
+            output += "<div class='enemy1' style='top:"+enemies1[i].y+"px; left:"+enemies1[i].x+"px;'></div>";
+        }
+        document.getElementById('enemies1').innerHTML = output;
+    }
+
+    function displayEnemies2() {
+        var output = '';
+        for (var i=0; i<enemies2.length; i++) {
+            output += "<div class='enemy2' style='top:"+enemies2[i].y+"px; left:"+enemies2[i].x+"px;'></div>";
+        }
+        document.getElementById('enemies2').innerHTML = output;
+    }
+
+    function moveEnemies1() {
+    for (var i=0; i<enemies1.length; i++) {
+        enemies1[i].y += 5;
+        if (enemies1[i].y > 660) {
+            enemies1[i].y = 0;
+            enemies1[i].x = Math.floor(Math.random()*420) + 480;
+            }
+        }
+    }
+
+    function moveEnemies2() {
+    for (var i=0; i<enemies2.length; i++) {
+        enemies2[i].y += 5;
+        if (enemies2[i].y > 660) {
+            enemies2[i].y = 0;
+            enemies2[i].x = Math.floor(Math.random()*420) + 480;
+            }
+        }
+    }
+
+    function moveBullets() {
+        for (var i=0; i<bullets.length; i++) {
+            bullets[i].y -= 5;
+            if (bullets[i].y < 0) {
+                bullets[i] = bullets[bullets.length-1];
+                bullets.pop(); //to remove the bullet from the array
+                console.log(bullets);
+            }
+        }
+    }
+
+    function displayBullets() {
+        var output = '';
+        for (var i=0; i<bullets.length; i++) {
+            output += "<div class='bullet' style='top:"+bullets[i].y+"px; left:"+bullets[i].x+"px;'></div>";
+        }
+        document.getElementById('bullets').innerHTML = output;
+    }
+
+    function displayScore() {
+        document.getElementById('score').innerHTML = score;
+    }
+
+    function displayExplosion() {
+        var output = '';
+        for (var i=0; i<explosion.length; i++) {
+            output += "<div class='explosion' style='top:"+explosion[i].y+"px; left:"+explosion[i].x+"px;'></div>";
+        }
+        document.getElementById('explosion').innerHTML = output;
+        explosion.pop();
+    }
+
+    function gameLoop() {
+        playAudio();
+        displayHero();
+        moveEnemies1();
+        displayEnemies1();
+        moveEnemies2();
+        displayEnemies2();
+        moveBullets();
+        displayBullets(); //display again after moving it
+        detectCollision();
+        displayScore();
+    }
+
+    setInterval(gameLoop, 30);
+
+    function detectCollision() {
+        //bullet collides with the enemy1 and enemy2
+        for (var i=0; i<bullets.length; i++) {
+            for (var j=0; j<enemies1.length; j++) {
+                if (Math.abs(bullets[i].x - enemies1[j].x) < 10 && Math.abs(bullets[i].y - enemies1[j].y) < 10) {
+                    score += 10;
+                    explosion.push({x: enemies1[j].x, y: enemies1[j].y});
+                    setInterval(displayExplosion, 750)
+                    explosionAudio.currentTime = 0;
+                    explosionAudio.play();
+                    enemies1[j] = enemies1[enemies1.length-1];
+                    enemies1.pop();
+                    bullets[i] = bullets[bullets.length-1];
+                    bullets.pop(); //to remove the bullet from the array
+                    clearInterval(displayExplosion);
+                }
+            }
+        }
+
+        for (var i=0; i<bullets.length; i++) {
+            for (var j=0; j<enemies2.length; j++) {
+                if (Math.abs(bullets[i].x - enemies2[j].x) < 10 && Math.abs(bullets[i].y - enemies2[j].y) < 10) {
+                    score += 10;
+                    explosion.push({x: enemies2[j].x, y: enemies2[j].y});
+                    setInterval(displayExplosion, 750)
+                    explosionAudio.currentTime = 0;
+                    explosionAudio.play();
+                    enemies2[j] = enemies2[enemies2.length-1];
+                    enemies2.pop(); //to remove the enemy
+                    bullets[i] = bullets[bullets.length-1];
+                    bullets.pop(); //to remove the bullet from the array
+                    clearInterval(displayExplosion);
+                }
+            }
+        }
+
+        //hero collides with the enemy1 and enemy2
+        for (var i=0; i<enemies1.length; i++) {
+            if (Math.abs(enemies1[i].x - hero.x) < 5  && Math.abs(enemies1[i].y - hero.y) < 5) {
+                score -= 500;
+                if (score < 0) {
+                    score = 0;
+                    console.log('score is 0'); //just to prove the score went to 0;
+                }
+                console.log('enemy', i, 'and hero collided!');
+            }
+        }
+        for (var i=0; i<enemies2.length; i++) {
+            if (Math.abs(enemies2[i].x - hero.x) < 5  && Math.abs(enemies2[i].y - hero.y) < 5) {
+                score -=500
+                if (score < 0) {
+                    score = 0;
+                    console.log('score is 0');
+                }
+                console.log('enemy', i, 'and hero collided!');
+            }
+        }
+    }
+
+    document.onkeydown = function(a) {
+        if (a.keyCode == 37) { //LEFT
+            if (hero.x > 410 && hero.x < 931) {
+                hero.x -=10
+            } 
+        }
+        else if (a.keyCode == 39) { //RIGHT
+            if (hero.x > 401 && hero.x < 920) {
+                hero.x += 10;
+            } 
+        }
+        else if (a.keyCode == 38) { //UP
+            if (hero.y > 11 && hero.y < 669) {
+                hero.y -=10;
+            }
+        }
+        else if (a.keyCode == 40) { //DOWN
+            if (hero.y > 1 && hero.y < 659)
+            hero.y += 10;
+        }
+        else if (a.keyCode == 32) { //SPACEBAR
+            bullets.push({x: hero.x+8, y: hero.y-15}); //bullets should be close to hero
+            displayBullets();
+        }
+    }
+
+    displayHero();
+
+</script>
+</body>
+</html> 
